@@ -1,3 +1,4 @@
 watchfiles>=0.21
 ruff>=0.6
 openai>=1.0
+PySide6-Essentials>=6.8

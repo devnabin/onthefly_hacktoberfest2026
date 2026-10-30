@@ -1,8 +1,21 @@
-invalid-syntax: unexpected EOF while parsing
- --> demo_project/app.py:2:17
+invalid-syntax: Simple statements must be separated by newlines or semicolons
+ --> demo_project/app.py:3:5
   |
 1 | print('hello sir')
-2 | print('hey dear'
-  |                 ^
+2 |
+3 | you broke nigga
+  |     ^^^^^
+4 | print('hey dear')
+  |
 
-Found 1 error.
+invalid-syntax: Simple statements must be separated by newlines or semicolons
+ --> demo_project/app.py:3:11
+  |
+1 | print('hello sir')
+2 |
+3 | you broke nigga
+  |           ^^^^^
+4 | print('hey dear')
+  |
+
+Found 2 errors.

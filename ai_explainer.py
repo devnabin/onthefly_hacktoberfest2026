@@ -1,6 +1,7 @@
 """Ask a local Gemma model (via Ollama) to explain why a save broke the code."""
 
 import difflib
+from collections.abc import Callable
 
 from openai import OpenAI
 
@@ -37,8 +38,19 @@ def make_diff(filename: str, before: str, after: str) -> str:
     )
 
 
-# Send both versions plus the error to Gemma and print its answer as it streams in
-def explain_error(filename: str, before: str, after: str, error: str) -> str:
+# Print a piece of the answer to the terminal as soon as it arrives
+def print_chunk(text: str) -> None:
+    print(text, end="", flush=True)
+
+
+# Send both versions plus the error to Gemma and stream its answer to on_chunk
+def explain_error(
+    filename: str,
+    before: str,
+    after: str,
+    error: str,
+    on_chunk: Callable[[str], None] = print_chunk,
+) -> str:
     # Put everything the model needs into one message
     user_prompt = f"""File: {filename}
 
@@ -63,11 +75,12 @@ def explain_error(filename: str, before: str, after: str, error: str) -> str:
         stream=True,
     )
 
-    # Print each chunk as it arrives and collect the full answer
+    # Pass each chunk on as it arrives and collect the full answer
     parts = []
     for chunk in stream:
         text = chunk.choices[0].delta.content or "" if chunk.choices else ""
-        print(text, end="", flush=True)
-        parts.append(text)
-    print()
+        if text:
+            on_chunk(text)
+            parts.append(text)
+    on_chunk("\n")
     return "".join(parts)

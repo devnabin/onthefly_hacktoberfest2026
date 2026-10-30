@@ -1,0 +1,17 @@
+B018 Found useless expression. Either assign it to a variable or remove it.
+ --> demo_project/test.py:3:1
+  |
+1 | print('hello world')
+2 |
+3 | fgh
+  | ^^^
+
+F821 Undefined name `fgh`
+ --> demo_project/test.py:3:1
+  |
+1 | print('hello world')
+2 |
+3 | fgh
+  | ^^^
+
+Found 2 errors.
