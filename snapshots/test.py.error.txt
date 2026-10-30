@@ -1,0 +1,13 @@
+invalid-syntax: missing closing quote in string literal
+ --> test.py:1:15
+  |
+1 | print('hello ''
+  |               ^
+
+invalid-syntax: unexpected EOF while parsing
+ --> test.py:1:17
+  |
+1 | print('hello ''
+  |                ^
+
+Found 2 errors.

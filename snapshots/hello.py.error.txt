@@ -1,0 +1,12 @@
+F821 Undefined name `prin`
+  --> demo_project/hello.py:8:1
+   |
+ 6 | print('hello world')
+ 7 | print('hello world')
+ 8 | prin('hello world')
+   | ^^^^
+ 9 | print('hello world')
+10 | print('hello world')
+   |
+
+Found 1 error.

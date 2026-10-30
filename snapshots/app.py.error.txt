@@ -1,8 +1,17 @@
-invalid-syntax: unexpected EOF while parsing
- --> demo_project/app.py:2:17
+invalid-syntax: missing closing quote in string literal
+ --> demo_project/app.py:3:7
   |
 1 | print('hello sir')
-2 | print('hey dear'
-  |                 ^
+2 | print('hey dear')
+3 | print('hello there
+  |       ^^^^^^^^^^^^
 
-Found 1 error.
+invalid-syntax: unexpected EOF while parsing
+ --> demo_project/app.py:3:19
+  |
+1 | print('hello sir')
+2 | print('hey dear')
+3 | print('hello there
+  |                   ^
+
+Found 2 errors.
