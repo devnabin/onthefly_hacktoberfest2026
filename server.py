@@ -36,6 +36,8 @@ def parse_args() -> argparse.Namespace:
                         help="openai and custom read their API key from OPENAI_API_KEY")
     parser.add_argument("--base-url", help="API address for custom (or a non-default Ollama)")
     parser.add_argument("--no-ai", action="store_true", help="don't ask the AI to explain errors")
+    parser.add_argument("--roast-theme", default="",
+                        help="add a punch line themed around this (e.g. Halloween); empty = off")
     return parser.parse_args()
 
 
@@ -70,6 +72,7 @@ def main() -> None:
                 on_chunk=lambda text: send({"type": "ai_chunk", "request_id": request_id, "text": text}),
                 model=args.model,
                 api_client=api_client,
+                roast_theme=args.roast_theme,
             )
             send({"type": "ai_done", "request_id": request_id, "error": ""})
         except OpenAIError as error:

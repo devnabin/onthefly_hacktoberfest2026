@@ -19,9 +19,19 @@ const MOTIVATION = [
 
 // Settings that change how Python runs; changing any of them restarts the server
 const SERVER_SETTINGS = [
-  "watchFolder", "enableAi", "pythonPath", "serverScript",
+  "watchFolder", "enableAi", "roastTheme", "pythonPath", "serverScript",
   "provider", "model", "ollamaUrl", "openaiModel", "customBaseUrl", "customModel",
 ];
+
+// Icon shown next to the punch line, matched loosely to the theme
+function themeIcon(theme: string): string {
+  const name = theme.toLowerCase();
+  if (name.includes("halloween")) return "🎃";
+  if (name.includes("christmas") || name.includes("xmas")) return "🎄";
+  if (name.includes("new year")) return "🎆";
+  if (name.includes("valentine")) return "❤️";
+  return "🎭";
+}
 
 const randomMotivation = () => MOTIVATION[Math.floor(Math.random() * MOTIVATION.length)];
 
@@ -62,7 +72,7 @@ export function activate(context: vscode.ExtensionContext): void {
   // Redraw the status bar ghost and the panel from the current state
   function render(): void {
     const newest = [...errors.values()].at(-1);
-    let state: Omit<PanelState, "fontSize">;
+    let state: Omit<PanelState, "fontSize" | "roastIcon">;
     if (!serverRunning) {
       state = { color: "stopped", title: "⚠️ Code On The Fly stopped", message: serverMessage, viewMode: "", current: undefined, others: [] };
     } else if (newest) {
@@ -73,7 +83,7 @@ export function activate(context: vscode.ExtensionContext): void {
     } else {
       state = { color: "idle", title: "👻 Watching", message: serverMessage, viewMode: "", current: undefined, others: [] };
     }
-    view.update({ ...state, fontSize: config().get("fontSize", 12) });
+    view.update({ ...state, fontSize: config().get("fontSize", 12), roastIcon: themeIcon(config().get("roastTheme", "")) });
 
     // Status bar: red background on errors, green text when clean
     statusBar.text = { stopped: "👻 Stopped", error: `👻 ${errors.size} error${errors.size === 1 ? "" : "s"}`, clean: "👻 Clean", idle: "👻 Watching" }[state.color];
@@ -228,6 +238,11 @@ export function activate(context: vscode.ExtensionContext): void {
     const args = ["-u", script, "--watch-dir", path.resolve(root, settings.get("watchFolder", "demo_project")), ...ai.args];
     if (!settings.get("enableAi", true)) {
       args.push("--no-ai");
+    }
+    // Punch line only when the user has entered a theme
+    const roastTheme = settings.get("roastTheme", "").trim();
+    if (roastTheme) {
+      args.push("--roast-theme", roastTheme);
     }
 
     // Mark as running right away; if Python fails, onStopped flips it back

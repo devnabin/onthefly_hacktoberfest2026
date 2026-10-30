@@ -92,6 +92,14 @@
           "default": true,
           "description": "Ask the local AI model to explain errors."
         },
+        "codeOnTheFly.roastTheme": {
+          "type": "string",
+          "default": "",
+          "maxLength": 40,
+          "pattern": "^[\\w .,'&!-]*$",
+          "patternErrorMessage": "Use letters, numbers, spaces and . , ' & ! - only.",
+          "description": "Theme for a short sarcastic punch line about each error (e.g. Halloween, Christmas, New Year). Leave empty for no punch line; the bug explanation is never affected."
+        },
         "codeOnTheFly.provider": {
           "type": "string",
           "default": "ollama",

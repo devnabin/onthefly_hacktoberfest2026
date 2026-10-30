@@ -45,6 +45,14 @@ function linesSection(entry) {
 // The AI ends its answer with "FIX: <line> | <corrected line>" for each line it changes
 const FIX_LINE = /^\s*FIX:\s*(\d+)\s*\|\s?(.*)$/gm;
 
+// Optional themed punch line: "ROAST: <one-liner>" just before the FIX lines
+const ROAST_LINE = /^\s*ROAST:\s*(.+)$/m;
+
+// The roast from the AI answer, or "" if there isn't one (yet)
+function parseRoast(suggestion) {
+  return suggestion.match(ROAST_LINE)?.[1].trim() ?? "";
+}
+
 // Corrected lines from the AI answer, grouped by line number
 function parseFixes(suggestion) {
   const fixes = new Map();
@@ -56,9 +64,9 @@ function parseFixes(suggestion) {
   return fixes;
 }
 
-// The AI answer without the FIX lines (they're only for the "to the point" view)
+// The AI answer without the FIX and ROAST lines (they're shown in their own places)
 function stripFixes(suggestion) {
-  return suggestion.replace(FIX_LINE, "").replace(/```\w*\s*```/g, "").trim();
+  return suggestion.replace(FIX_LINE, "").replace(new RegExp(ROAST_LINE.source, "gm"), "").replace(/```\w*\s*```/g, "").trim();
 }
 
 // Sorted, unique line numbers that have an error
@@ -138,6 +146,12 @@ function render(state) {
   if (state.color === "error") {
     const sections = SECTIONS[state.viewMode] || SECTIONS.default;
     body = sections.map((section) => section(state.current)).join("");
+
+    // Themed punch line on top, in every view, once the AI has written it
+    const roast = parseRoast(state.current.suggestion);
+    if (roast) {
+      body = `<p class="roast">${escapeHtml(state.roastIcon)} ${escapeHtml(roast)}</p>` + body;
+    }
     if (state.others.length) {
       body += `<hr><p class="note">Also failing: ${state.others.map(escapeHtml).join(", ")}</p>`;
     }

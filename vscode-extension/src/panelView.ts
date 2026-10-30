@@ -22,6 +22,7 @@ export interface PanelState {
   message: string;
   viewMode: string;
   fontSize: number;
+  roastIcon: string;
   current: ErrorEntry | undefined;
   others: string[];
 }
