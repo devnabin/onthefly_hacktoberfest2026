@@ -13,7 +13,7 @@ from pathlib import Path
 
 from openai import OpenAIError
 
-from ai_explainer import MODEL, explain_error
+from ai_explainer import MODEL, explain_error, make_client
 from watcher import WATCH_DIR, find_error_lines, watch_and_check
 
 # Several threads (watcher + AI requests) print events, so writes must not interleave
@@ -32,6 +32,9 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--watch-dir", type=Path, default=WATCH_DIR)
     parser.add_argument("--model", default=MODEL)
+    parser.add_argument("--provider", choices=["ollama", "openai", "custom"], default="ollama",
+                        help="openai and custom read their API key from OPENAI_API_KEY")
+    parser.add_argument("--base-url", help="API address for custom (or a non-default Ollama)")
     parser.add_argument("--no-ai", action="store_true", help="don't ask the AI to explain errors")
     return parser.parse_args()
 
@@ -44,10 +47,19 @@ def main() -> None:
         send({"type": "fatal", "message": f"Watch folder not found: {watch_dir}"})
         sys.exit(1)
 
+    # Connect to the AI provider up front so a missing API key is reported right away
+    api_client = None
+    if not args.no_ai:
+        try:
+            api_client = make_client(args.provider, args.base_url)
+        except (OpenAIError, ValueError) as error:
+            send({"type": "fatal", "message": f"Could not set up {args.provider}: {error}"})
+            sys.exit(1)
+
     # Each check gets an id so the extension can ignore suggestions for outdated errors
     request_ids = itertools.count(1)
 
-    # Stream Gemma's suggestion; runs on its own thread so checks stay instant
+    # Stream the AI suggestion; runs on its own thread so checks stay instant
     def ask_ai(request_id: int, name: Path, before: str, after: str, output: str) -> None:
         try:
             explain_error(
@@ -57,6 +69,7 @@ def main() -> None:
                 output,
                 on_chunk=lambda text: send({"type": "ai_chunk", "request_id": request_id, "text": text}),
                 model=args.model,
+                api_client=api_client,
             )
             send({"type": "ai_done", "request_id": request_id, "error": ""})
         except OpenAIError as error:
@@ -88,7 +101,7 @@ def main() -> None:
     def on_deleted(name: Path) -> None:
         send({"type": "deleted", "file": str(name), "path": str(watch_dir / name)})
 
-    send({"type": "ready", "watch_dir": str(watch_dir), "model": args.model, "ai": not args.no_ai})
+    send({"type": "ready", "watch_dir": str(watch_dir), "provider": args.provider, "model": args.model, "ai": not args.no_ai})
     watch_and_check(on_result, on_deleted, directory=watch_dir)
 
 

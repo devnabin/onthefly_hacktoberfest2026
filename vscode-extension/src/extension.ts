@@ -5,6 +5,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { ErrorEntry, PanelViewProvider, PanelState } from "./panelView";
 import { PythonServer, ServerEvent } from "./server";
+import { askForApiKey, chooseProvider, currentProvider, serverAiOptions } from "./aiProvider";
 import { showSettingsMenu } from "./settingsMenu";
 
 // Shown when every check passes (and the user clicks the ghost for a new one)
@@ -17,7 +18,10 @@ const MOTIVATION = [
 ];
 
 // Settings that change how Python runs; changing any of them restarts the server
-const SERVER_SETTINGS = ["watchFolder", "model", "enableAi", "pythonPath", "serverScript"];
+const SERVER_SETTINGS = [
+  "watchFolder", "enableAi", "pythonPath", "serverScript",
+  "provider", "model", "ollamaUrl", "openaiModel", "customBaseUrl", "customModel",
+];
 
 const randomMotivation = () => MOTIVATION[Math.floor(Math.random() * MOTIVATION.length)];
 
@@ -194,8 +198,16 @@ export function activate(context: vscode.ExtensionContext): void {
     return process.platform === "win32" ? "python" : "python3";
   }
 
+  // Restart shortly after settings change; a guided setup saves several settings at once,
+  // and this makes them cause a single restart
+  let restartTimer: NodeJS.Timeout | undefined;
+  function scheduleRestart(): void {
+    clearTimeout(restartTimer);
+    restartTimer = setTimeout(() => void startServer(), 300);
+  }
+
   // (Re)start server.py with the current settings and a clean slate
-  function startServer(): void {
+  async function startServer(): Promise<void> {
     errors.clear();
     diagnostics.clear();
     checkedAny = false;
@@ -212,14 +224,15 @@ export function activate(context: vscode.ExtensionContext): void {
 
     const settings = config();
     const script = path.resolve(root, settings.get("serverScript", "server.py"));
-    const args = ["-u", script, "--watch-dir", path.resolve(root, settings.get("watchFolder", "demo_project")), "--model", settings.get("model", "gemma4:12b-mlx")];
+    const ai = await serverAiOptions(context.secrets);
+    const args = ["-u", script, "--watch-dir", path.resolve(root, settings.get("watchFolder", "demo_project")), ...ai.args];
     if (!settings.get("enableAi", true)) {
       args.push("--no-ai");
     }
 
     // Mark as running right away; if Python fails, onStopped flips it back
     serverRunning = true;
-    server.start(resolvePython(root), args, root);
+    server.start(resolvePython(root), args, root, ai.env);
     render();
   }
 
@@ -232,10 +245,23 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("codeOnTheFly.restart", startServer),
     vscode.commands.registerCommand("codeOnTheFly.settings", showSettingsMenu),
 
+    // Guided setup: Ollama, OpenAI, or another API (with whatever that provider needs)
+    vscode.commands.registerCommand("codeOnTheFly.chooseProvider", () => chooseProvider(context.secrets)),
+
+    // Change the API key of the provider in use
+    vscode.commands.registerCommand("codeOnTheFly.setApiKey", async () => {
+      const { provider } = currentProvider();
+      if (provider === "ollama") {
+        vscode.window.showInformationMessage("Ollama runs locally and doesn't need an API key.");
+      } else if (await askForApiKey(context.secrets, provider)) {
+        scheduleRestart();
+      }
+    }),
+
     // React to settings.json changes: display settings redraw, the rest restarts Python
     vscode.workspace.onDidChangeConfiguration((change) => {
       if (SERVER_SETTINGS.some((name) => change.affectsConfiguration(`codeOnTheFly.${name}`))) {
-        startServer();
+        scheduleRestart();
       } else if (change.affectsConfiguration("codeOnTheFly.viewMode") || change.affectsConfiguration("codeOnTheFly.fontSize")) {
         render();
       }

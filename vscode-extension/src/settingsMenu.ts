@@ -1,6 +1,7 @@
 // The ⚙ menu in the Code On The Fly panel title bar: quick pickers that write to settings.json.
 
 import * as vscode from "vscode";
+import { currentProvider } from "./aiProvider";
 
 // Views the panel can show when a file has an error
 const VIEW_MODES: { value: string; label: string }[] = [
@@ -39,12 +40,15 @@ export async function showSettingsMenu(): Promise<void> {
   const viewMode = settings.get("viewMode", "default");
   const fontSize = settings.get("fontSize", 12);
   const aiEnabled = settings.get("enableAi", true);
+  const ai = currentProvider();
 
   const choice = await vscode.window.showQuickPick(
     [
       { label: "$(layout) View", description: VIEW_MODES.find((m) => m.value === viewMode)?.label, id: "view" },
       { label: "$(text-size) Font size", description: `${fontSize}px`, id: "font" },
       { label: aiEnabled ? "$(sparkle) Turn AI suggestions off" : "$(sparkle) Turn AI suggestions on", id: "ai" },
+      { label: "$(cloud) AI provider…", description: `${ai.label} · ${ai.model || "no model set"}`, id: "provider" },
+      ...(ai.provider === "ollama" ? [] : [{ label: `$(key) Change ${ai.label} API key…`, id: "key" }]),
       { label: "$(settings-gear) Open all Code On The Fly settings…", id: "all" },
     ],
     { title: "Code On The Fly settings" },
@@ -68,6 +72,12 @@ export async function showSettingsMenu(): Promise<void> {
     }
     case "ai":
       await save("enableAi", !aiEnabled);
+      break;
+    case "provider":
+      await vscode.commands.executeCommand("codeOnTheFly.chooseProvider");
+      break;
+    case "key":
+      await vscode.commands.executeCommand("codeOnTheFly.setApiKey");
       break;
     case "all":
       await vscode.commands.executeCommand("workbench.action.openSettings", "codeOnTheFly");

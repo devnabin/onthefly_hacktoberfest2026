@@ -42,7 +42,7 @@ function linesSection(entry) {
     .join("");
 }
 
-// Gemma ends its answer with "FIX: <line> | <corrected line>" for each line it changes
+// The AI ends its answer with "FIX: <line> | <corrected line>" for each line it changes
 const FIX_LINE = /^\s*FIX:\s*(\d+)\s*\|\s?(.*)$/gm;
 
 // Corrected lines from the AI answer, grouped by line number
@@ -76,7 +76,7 @@ function lineNumberSection(entry) {
   return `<p class="line-numbers">${links.join(", ")}</p>`;
 }
 
-// Each broken line next to Gemma's corrected version
+// Each broken line next to the AI's corrected version
 function toThePointSection(entry) {
   const fixes = parseFixes(entry.suggestion);
   const numbers = [...new Set([...errorLineNumbers(entry), ...fixes.keys()])].sort((a, b) => a - b);
@@ -94,21 +94,21 @@ function toThePointSection(entry) {
   // Explain why a fixed line is missing
   let note = "";
   if (!fixes.size) {
-    if (entry.status === "thinking") note = "Gemma is working out the fix…";
+    if (entry.status === "thinking") note = "AI is working out the fix…";
     else if (entry.status === "off") note = "Turn on AI suggestions to see the fixed line.";
     else if (entry.status === "failed") note = `AI explanation failed: ${escapeHtml(entry.aiError)}`;
-    else note = "Gemma didn't suggest a fixed line; switch to another view for the full answer.";
+    else note = "The AI didn't suggest a fixed line; switch to another view for the full answer.";
   }
   return rows.join("") + (note ? `<p class="note">${note}</p>` : "");
 }
 
-// Gemma's answer (rendered as markdown) or a status note
+// The AI's answer (rendered as markdown) or a status note
 function suggestionSection(entry) {
   let html = "<h4>🤖 Suggestion</h4>";
   if (entry.suggestion) {
     html += `<div class="markdown">${marked.parse(stripFixes(entry.suggestion))}</div>`;
   } else if (entry.status === "thinking") {
-    html += `<p class="note">Gemma is thinking…</p>`;
+    html += `<p class="note">AI is thinking…</p>`;
   } else if (entry.status === "off") {
     html += `<p class="note">AI suggestions are off (setting <code>codeOnTheFly.enableAi</code>).</p>`;
   }

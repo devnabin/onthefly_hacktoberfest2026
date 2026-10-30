@@ -39,6 +39,14 @@
         "command": "codeOnTheFly.settings",
         "title": "Code On The Fly: Settings",
         "icon": "$(gear)"
+      },
+      {
+        "command": "codeOnTheFly.chooseProvider",
+        "title": "Code On The Fly: Choose AI Provider"
+      },
+      {
+        "command": "codeOnTheFly.setApiKey",
+        "title": "Code On The Fly: Set API Key"
       }
     ],
     "configuration": {
@@ -84,10 +92,45 @@
           "default": true,
           "description": "Ask the local AI model to explain errors."
         },
+        "codeOnTheFly.provider": {
+          "type": "string",
+          "default": "ollama",
+          "enum": [
+            "ollama",
+            "openai",
+            "custom"
+          ],
+          "enumDescriptions": [
+            "Local Ollama model (default); your code never leaves your machine.",
+            "OpenAI API; needs an API key. Your code is sent to OpenAI.",
+            "Any other OpenAI-compatible API (OpenRouter, Groq, Gemini, LM Studio, …); set the base URL, key, and model."
+          ],
+          "description": "Which AI explains errors. Easiest to change with ⚙ → AI provider, which asks for everything needed."
+        },
         "codeOnTheFly.model": {
           "type": "string",
           "default": "gemma4:12b-mlx",
-          "description": "Ollama model used for suggestions (see `ollama list`)."
+          "description": "Ollama model used when the provider is ollama (see `ollama list`)."
+        },
+        "codeOnTheFly.ollamaUrl": {
+          "type": "string",
+          "default": "http://localhost:11434",
+          "description": "Address of the Ollama server."
+        },
+        "codeOnTheFly.openaiModel": {
+          "type": "string",
+          "default": "gpt-4o-mini",
+          "description": "OpenAI model used when the provider is openai."
+        },
+        "codeOnTheFly.customBaseUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Base URL of the OpenAI-compatible API used when the provider is custom (e.g. https://openrouter.ai/api/v1)."
+        },
+        "codeOnTheFly.customModel": {
+          "type": "string",
+          "default": "",
+          "description": "Model name used when the provider is custom."
         },
         "codeOnTheFly.pythonPath": {
           "type": "string",
