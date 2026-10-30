@@ -1,11 +1,46 @@
 """Watch demo_project and print a message whenever a file in it is saved."""
 
+import subprocess
+import sys
 from pathlib import Path
 
 from watchfiles import watch
 
 # Folder to watch, relative to this script so it works from any directory
 WATCH_DIR = (Path(__file__).parent / "demo_project").resolve()
+
+# Check command per file type; these find errors without running the code.
+# Ruff catches Python syntax errors and undefined names like `printt` (F821).
+COMPILERS = {
+    ".js": ["node", "--check"],
+    ".py": [sys.executable, "-m", "ruff", "check", "--no-cache"],
+}
+
+
+# Compile a file and print the result; on failure print the full error output
+def compile_file(path: Path, name: Path) -> None:
+    command = COMPILERS.get(path.suffix)
+    if command is None:
+        print(f"No compiler configured for {path.suffix or 'files without an extension'}, skipping")
+        return
+
+    try:
+        result = subprocess.run(
+            [*command, str(path)], capture_output=True, text=True, timeout=30, check=False
+        )
+    except FileNotFoundError:
+        print(f"Compiler not found: {command[0]} (is it installed?)")
+        return
+    except subprocess.TimeoutExpired:
+        print(f"Compiling {name} timed out")
+        return
+
+    # Exit code 0 means the file compiled cleanly
+    if result.returncode == 0:
+        print(f"✅ {name} compiled successfully")
+    else:
+        print(f"❌ {name} failed to compile:")
+        print(result.stderr or result.stdout)
 
 
 # Read a file's contents, or None if it no longer exists
@@ -43,6 +78,7 @@ def main() -> None:
                 print(f"File deleted: {name}")
             else:
                 print(f"Code changed in {name}")
+                compile_file(path, name)
 
 
 # Run the watcher when this file is executed directly
