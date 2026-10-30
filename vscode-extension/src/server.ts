@@ -23,13 +23,14 @@ export class PythonServer {
     private readonly log: (line: string) => void,
   ) {}
 
-  // Launch `python server.py ...`; any previous server is stopped first
-  start(python: string, args: string[], cwd: string): void {
+  // Launch `python server.py ...`; any previous server is stopped first.
+  // env adds variables such as OPENAI_API_KEY (never logged, never on the command line).
+  start(python: string, args: string[], cwd: string, env: NodeJS.ProcessEnv = {}): void {
     this.stop();
     this.stderrTail = [];
     this.log(`Starting: ${python} ${args.join(" ")}`);
 
-    const child = spawn(python, args, { cwd });
+    const child = spawn(python, args, { cwd, env: { ...process.env, ...env } });
     this.child = child;
 
     // Each stdout line is one JSON event; anything else is just logged

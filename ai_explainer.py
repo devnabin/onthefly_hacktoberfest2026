@@ -1,15 +1,32 @@
-"""Ask a local Gemma model (via Ollama) to explain why a save broke the code."""
+"""Ask an AI model (local Ollama, OpenAI, or another OpenAI-compatible API) to explain errors."""
 
 import difflib
+import os
 from collections.abc import Callable
 
 from openai import OpenAI
 
-# Local Ollama server, using its OpenAI-compatible API
-client = OpenAI(
-    base_url="http://localhost:11434/v1",
-    api_key="ollama",  # Required by the SDK, but ignored by Ollama
-)
+# Local Ollama server's OpenAI-compatible API
+OLLAMA_URL = "http://localhost:11434/v1"
+
+
+# Create the API client for a provider. The API key always comes from OPENAI_API_KEY.
+#   ollama: local server (base_url overrides the default address)
+#   openai: OpenAI itself; raises OpenAIError if the key isn't set
+#   custom: any OpenAI-compatible API at base_url (OpenRouter, Groq, LM Studio, ...)
+def make_client(provider: str = "ollama", base_url: str | None = None) -> OpenAI:
+    if provider == "openai":
+        return OpenAI()
+    if provider == "custom":
+        if not base_url:
+            raise ValueError("no base URL set for the custom API")
+        # Local servers like LM Studio don't need a key, but the SDK requires one
+        return OpenAI(base_url=base_url, api_key=os.environ.get("OPENAI_API_KEY") or "not-needed")
+    return OpenAI(base_url=base_url or OLLAMA_URL, api_key="ollama")  # key is required by the SDK, ignored by Ollama
+
+
+# Default client used by the terminal mode
+client = make_client()
 
 # Model to use; must be pulled in Ollama (`ollama list`)
 MODEL = "gemma4:12b-mlx"
@@ -47,7 +64,7 @@ def print_chunk(text: str) -> None:
     print(text, end="", flush=True)
 
 
-# Send both versions plus the error to Gemma and stream its answer to on_chunk
+# Send both versions plus the error to the AI model and stream its answer to on_chunk
 def explain_error(
     filename: str,
     before: str,
@@ -55,6 +72,7 @@ def explain_error(
     error: str,
     on_chunk: Callable[[str], None] = print_chunk,
     model: str = MODEL,
+    api_client: OpenAI | None = None,
 ) -> str:
     # Put everything the model needs into one message
     user_prompt = f"""File: {filename}
@@ -71,7 +89,7 @@ def explain_error(
 --- Error ---
 {error}"""
 
-    stream = client.chat.completions.create(
+    stream = (api_client or client).chat.completions.create(
         model=model,
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},

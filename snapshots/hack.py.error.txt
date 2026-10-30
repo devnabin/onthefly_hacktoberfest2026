@@ -1,13 +1,13 @@
 invalid-syntax: missing closing quote in string literal
  --> hack.py:1:7
   |
-1 | print(' )
-  |       ^^^
+1 | print('hello tehre
+  |       ^^^^^^^^^^^^
 
 invalid-syntax: unexpected EOF while parsing
- --> hack.py:1:10
+ --> hack.py:1:19
   |
-1 | print(' )
-  |          ^
+1 | print('hello tehre
+  |                   ^
 
 Found 2 errors.
