@@ -1,13 +1,12 @@
-invalid-syntax: missing closing quote in string literal
- --> test.py:1:15
+invalid-syntax: Expected an expression
+ --> test.py:3:5
   |
-1 | print('hello ''
-  |               ^
-
-invalid-syntax: unexpected EOF while parsing
- --> test.py:1:17
+1 | print('hello')
+2 | a = 4
+3 | b = 
+  |     ^
+4 |
+5 | print(a+b)
   |
-1 | print('hello ''
-  |                ^
 
-Found 2 errors.
+Found 1 error.

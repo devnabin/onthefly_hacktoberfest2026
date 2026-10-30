@@ -302,3 +302,7 @@ To build the extension manually, run `npm run compile` inside `vscode-extension`
 Images will be added here later.
 
 <!-- Add screenshots here: the AI provider menu, provider setup, the watching panel, an error with an AI suggestion, and the clean state after a fix. -->
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).

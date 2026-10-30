@@ -1,13 +1,10 @@
-invalid-syntax: missing closing quote in string literal
- --> hack.py:1:7
+invalid-syntax: Expected an expression
+ --> hack.py:1:5
   |
-1 | print('  
-  |       ^^^
-
-invalid-syntax: unexpected EOF while parsing
- --> hack.py:1:10
+1 | a = 
+  |     ^
+2 | b = 3
+3 | print(a+b)
   |
-1 | print('  
-  |          ^
 
-Found 2 errors.
+Found 1 error.
