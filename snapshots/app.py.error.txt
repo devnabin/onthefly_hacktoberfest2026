@@ -1,21 +1,17 @@
-invalid-syntax: Simple statements must be separated by newlines or semicolons
- --> demo_project/app.py:3:5
+invalid-syntax: missing closing quote in string literal
+ --> demo_project/app.py:3:7
   |
 1 | print('hello sir')
-2 |
-3 | you broke nigga
-  |     ^^^^^
-4 | print('hey dear')
-  |
+2 | print('hey dear')
+3 | print('hello there
+  |       ^^^^^^^^^^^^
 
-invalid-syntax: Simple statements must be separated by newlines or semicolons
- --> demo_project/app.py:3:11
+invalid-syntax: unexpected EOF while parsing
+ --> demo_project/app.py:3:19
   |
 1 | print('hello sir')
-2 |
-3 | you broke nigga
-  |           ^^^^^
-4 | print('hey dear')
-  |
+2 | print('hey dear')
+3 | print('hello there
+  |                   ^
 
 Found 2 errors.

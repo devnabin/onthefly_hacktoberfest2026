@@ -23,7 +23,11 @@ Respond with:
 2. The exact line(s) in the new version that cause it, and why.
 3. The fixed code for those lines.
 4. A short tip to avoid this mistake next time.
-Be specific and concise. Base your answer on the code and error given."""
+Be specific and concise. Base your answer on the code and error given.
+
+At the very end, for every line you change, add one line in exactly this format
+(plain text, not in a code block, nothing after them):
+FIX: <line number> | <the corrected line, with its original indentation>"""
 
 
 # Build a unified diff so the model can see exactly what the save changed
@@ -50,6 +54,7 @@ def explain_error(
     after: str,
     error: str,
     on_chunk: Callable[[str], None] = print_chunk,
+    model: str = MODEL,
 ) -> str:
     # Put everything the model needs into one message
     user_prompt = f"""File: {filename}
@@ -67,7 +72,7 @@ def explain_error(
 {error}"""
 
     stream = client.chat.completions.create(
-        model=MODEL,
+        model=model,
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": user_prompt},

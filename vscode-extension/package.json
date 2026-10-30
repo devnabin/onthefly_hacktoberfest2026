@@ -1,0 +1,126 @@
+{
+  "name": "code-on-the-fly",
+  "displayName": "Code On The Fly",
+  "description": "Checks files on save and asks a local Gemma model (Ollama) to explain errors.",
+  "version": "0.1.0",
+  "publisher": "onthefly",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Linters",
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "views": {
+      "explorer": [
+        {
+          "type": "webview",
+          "id": "codeOnTheFly.panel",
+          "name": "Code On The Fly"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "codeOnTheFly.showPanel",
+        "title": "Code On The Fly: Show Panel"
+      },
+      {
+        "command": "codeOnTheFly.restart",
+        "title": "Code On The Fly: Restart Server"
+      },
+      {
+        "command": "codeOnTheFly.settings",
+        "title": "Code On The Fly: Settings",
+        "icon": "$(gear)"
+      }
+    ],
+    "configuration": {
+      "title": "Code On The Fly",
+      "properties": {
+        "codeOnTheFly.viewMode": {
+          "type": "string",
+          "default": "default",
+          "enum": [
+            "default",
+            "error",
+            "suggestion",
+            "line",
+            "line_suggestion",
+            "line_number",
+            "to_the_point"
+          ],
+          "enumDescriptions": [
+            "Error message + AI suggestion",
+            "Error message only",
+            "AI suggestion only",
+            "Error line only",
+            "Error line + AI suggestion",
+            "Line number only",
+            "To the point: the broken line and the AI's fixed line"
+          ],
+          "description": "What the Code On The Fly panel shows when a file has an error."
+        },
+        "codeOnTheFly.fontSize": {
+          "type": "number",
+          "default": 12,
+          "minimum": 8,
+          "maximum": 24,
+          "description": "Font size (px) of the text and code in the Code On The Fly panel."
+        },
+        "codeOnTheFly.watchFolder": {
+          "type": "string",
+          "default": "demo_project",
+          "description": "Folder (relative to the workspace) whose files are checked on save."
+        },
+        "codeOnTheFly.enableAi": {
+          "type": "boolean",
+          "default": true,
+          "description": "Ask the local AI model to explain errors."
+        },
+        "codeOnTheFly.model": {
+          "type": "string",
+          "default": "gemma4:12b-mlx",
+          "description": "Ollama model used for suggestions (see `ollama list`)."
+        },
+        "codeOnTheFly.pythonPath": {
+          "type": "string",
+          "default": "",
+          "description": "Python used to run the Code On The Fly server. Leave empty to use the workspace .venv, then python3 on PATH."
+        },
+        "codeOnTheFly.serverScript": {
+          "type": "string",
+          "default": "server.py",
+          "description": "Path to server.py, relative to the workspace (or absolute)."
+        }
+      }
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "codeOnTheFly.settings",
+          "when": "view == codeOnTheFly.panel",
+          "group": "navigation"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "dependencies": {
+    "marked": "^18.1.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "~1.90.0",
+    "typescript": "^5.6.0"
+  }
+}

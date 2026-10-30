@@ -91,15 +91,16 @@ def save_snapshots(name: Path, before: str, after: str, error: str) -> Path:
 
 
 # Watch the folder until stop_event is set; check every changed file and report the result.
-# Used by both the terminal mode below and the desktop ghost (main.py).
+# Used by the terminal mode below and by server.py (the VS Code extension backend).
 def watch_and_check(
     on_result: ResultCallback,
     on_deleted: DeletedCallback | None = None,
     stop_event: threading.Event | None = None,
+    directory: Path = WATCH_DIR,
 ) -> None:
     # Remember each file's current contents so we only report real changes
     last_contents = {
-        path: read_file(path) for path in WATCH_DIR.rglob("*") if path.is_file()
+        path: read_file(path) for path in directory.rglob("*") if path.is_file()
     }
 
     # Remember the last version of each file that compiled cleanly (the "before")
@@ -110,7 +111,7 @@ def watch_and_check(
             last_working[path] = contents
 
     # watch() blocks and yields a set of (change, path) each time files change
-    for changes in watch(WATCH_DIR, stop_event=stop_event):
+    for changes in watch(directory, stop_event=stop_event):
         for path in sorted({Path(p) for _, p in changes}):
             # Folders also emit events; we only care about files
             if path.is_dir():
@@ -123,7 +124,7 @@ def watch_and_check(
             previous = last_contents.get(path)
             last_contents[path] = current
 
-            name = path.relative_to(WATCH_DIR)
+            name = path.relative_to(directory)
             if current is None:
                 last_working.pop(path, None)
                 if on_deleted:

@@ -1,2 +1,4 @@
 ./snapshots
 ./demo_project
+vscode-extension/node_modules
+vscode-extension/out

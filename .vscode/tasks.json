@@ -1,0 +1,12 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Compile Code On The Fly extension",
+      "type": "npm",
+      "script": "compile",
+      "path": "vscode-extension",
+      "problemMatcher": "$tsc"
+    }
+  ]
+}
