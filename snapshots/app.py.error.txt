@@ -1,0 +1,8 @@
+invalid-syntax: unexpected EOF while parsing
+ --> demo_project/app.py:2:17
+  |
+1 | print('hello sir')
+2 | print('hey dear'
+  |                 ^
+
+Found 1 error.
