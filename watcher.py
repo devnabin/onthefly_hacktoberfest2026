@@ -17,7 +17,7 @@ from ai_explainer import explain_error
 # Folder to watch, relative to this script so it works from any directory
 WATCH_DIR = (Path(__file__).parent / "demo_workspace").resolve()
 
-# Where before/after copies are saved; outside WATCH_DIR so it doesn't trigger the watcher
+# Where before/after copies are saved by default; outside WATCH_DIR so it doesn't trigger the watcher
 SNAPSHOT_DIR = (Path(__file__).parent / "snapshots").resolve()
 
 # Check command per file type; these find errors without running the code.
@@ -115,8 +115,8 @@ def read_file(path: Path) -> str | None:
 
 
 # Save the working version, broken version, and error so they can be inspected later
-def save_snapshots(name: Path, before: str, after: str, error: str) -> Path:
-    folder = SNAPSHOT_DIR / name.parent
+def save_snapshots(name: Path, before: str, after: str, error: str, snapshot_dir: Path = SNAPSHOT_DIR) -> Path:
+    folder = snapshot_dir / name.parent
     folder.mkdir(parents=True, exist_ok=True)
     (folder / f"{name.name}.before").write_text(before)
     (folder / f"{name.name}.after").write_text(after)
@@ -131,6 +131,7 @@ def watch_and_check(
     on_deleted: DeletedCallback | None = None,
     stop_event: threading.Event | None = None,
     directory: Path = WATCH_DIR,
+    snapshot_dir: Path = SNAPSHOT_DIR,
 ) -> None:
     # Remember each file's current contents so we only report real changes.
     # Nothing is checked yet, so opening a big project starts instantly.
@@ -187,7 +188,7 @@ def watch_and_check(
             # Failed compile: compare against the last working version
             # (or the previous save if it never worked) and keep copies
             before = last_working.get(path, previous or "")
-            save_snapshots(name, before, current, output)
+            save_snapshots(name, before, current, output, snapshot_dir)
             on_result(name, False, output, before, current)
 
 

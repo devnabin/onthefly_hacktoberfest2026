@@ -228,7 +228,14 @@ export function activate(context: vscode.ExtensionContext): void {
       ? path.resolve(root, customScript)
       : path.join(context.extensionPath, "python", "server.py");
     const ai = await serverAiOptions(context.secrets);
-    const args = ["-u", script, "--watch-dir", path.resolve(root, settings.get("watchFolder", ".")), ...ai.args];
+    // Snapshots go to VS Code's storage for this workspace, not the extension or the user's code
+    const snapshotDir = path.join((context.storageUri ?? context.globalStorageUri).fsPath, "snapshots");
+    const args = [
+      "-u", script,
+      "--watch-dir", path.resolve(root, settings.get("watchFolder", ".")),
+      "--snapshot-dir", snapshotDir,
+      ...ai.args,
+    ];
     if (!settings.get("enableAi", true)) {
       args.push("--no-ai");
     }

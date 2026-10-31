@@ -14,7 +14,7 @@ from pathlib import Path
 from openai import OpenAIError
 
 from ai_explainer import MODEL, explain_error, make_client
-from watcher import WATCH_DIR, find_error_lines, watch_and_check
+from watcher import SNAPSHOT_DIR, WATCH_DIR, find_error_lines, watch_and_check
 
 # Several threads (watcher + AI requests) print events, so writes must not interleave
 send_lock = threading.Lock()
@@ -31,6 +31,8 @@ def send(event: dict) -> None:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--watch-dir", type=Path, default=WATCH_DIR)
+    parser.add_argument("--snapshot-dir", type=Path, default=SNAPSHOT_DIR,
+                        help="where before/after copies of broken saves are kept")
     parser.add_argument("--model", default=MODEL)
     parser.add_argument("--provider", choices=["ollama", "openai", "custom"], default="ollama",
                         help="openai and custom read their API key from OPENAI_API_KEY")
@@ -105,7 +107,7 @@ def main() -> None:
         send({"type": "deleted", "file": str(name), "path": str(watch_dir / name)})
 
     send({"type": "ready", "watch_dir": str(watch_dir), "provider": args.provider, "model": args.model, "ai": not args.no_ai})
-    watch_and_check(on_result, on_deleted, directory=watch_dir)
+    watch_and_check(on_result, on_deleted, directory=watch_dir, snapshot_dir=args.snapshot_dir.resolve())
 
 
 # Run the server; Ctrl+C or the extension closing stdin/killing us just exits quietly
