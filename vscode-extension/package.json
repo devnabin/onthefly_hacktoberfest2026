@@ -117,7 +117,7 @@
         },
         "codeOnTheFly.model": {
           "type": "string",
-          "default": "gemma4:12b-mlx",
+          "default": "gemma4:12b",
           "description": "Ollama model used when the provider is ollama (see `ollama list`)."
         },
         "codeOnTheFly.ollamaUrl": {

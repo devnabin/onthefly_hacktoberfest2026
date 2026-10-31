@@ -123,7 +123,7 @@ Choose **Ollama** in the provider menu. The extension lists installed models so 
 ollama list
 ```
 
-The default model is `gemma4:12b-mlx`. This exact model name must exist in your Ollama setup, or you should select a different installed model.
+The default model is `gemma4:12b`. This exact model name must exist in your Ollama setup, or you should select a different installed model.
 
 The default server address is `http://localhost:11434`. Change `codeOnTheFly.ollamaUrl` if needed; enter the address without `/v1`, because the extension adds it for AI requests.
 
@@ -214,7 +214,7 @@ For settings that apply only to this project, add them to `.vscode/settings.json
 | `codeOnTheFly.watchFolder` | `.` | Folder to check, relative to the open workspace. `.` means the whole workspace. Library folders such as `node_modules` and `.venv` are skipped. |
 | `codeOnTheFly.enableAi` | `true` | Turns AI explanations on or off. |
 | `codeOnTheFly.provider` | `ollama` | AI provider: `ollama`, `openai`, or `custom`. |
-| `codeOnTheFly.model` | `gemma4:12b-mlx` | Model used by the Ollama provider. |
+| `codeOnTheFly.model` | `gemma4:12b` | Model used by the Ollama provider. |
 | `codeOnTheFly.ollamaUrl` | `http://localhost:11434` | Ollama server address, without `/v1`. |
 | `codeOnTheFly.openaiModel` | `gpt-4o-mini` | Model used by the OpenAI provider. |
 | `codeOnTheFly.customBaseUrl` | Empty | Full API base URL for the custom provider. |

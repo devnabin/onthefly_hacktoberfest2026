@@ -30,7 +30,7 @@ def make_client(provider: str = "ollama", base_url: str | None = None) -> OpenAI
 client = make_client()
 
 # Model to use; must be pulled in Ollama (`ollama list`)
-MODEL = "gemma4:12b-mlx"
+MODEL = "gemma4:12b"
 
 # Instructions that shape how the model answers
 SYSTEM_PROMPT = """You are a friendly senior developer helping a teammate debug.

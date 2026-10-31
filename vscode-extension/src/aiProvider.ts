@@ -42,7 +42,7 @@ export function currentProvider(): { provider: Provider; label: string; model: s
   const settings = config();
   const provider = settings.get<Provider>("provider", "ollama");
   const model = {
-    ollama: settings.get("model", "gemma4:12b-mlx"),
+    ollama: settings.get("model", "gemma4:12b"),
     openai: settings.get("openaiModel", "gpt-4o-mini"),
     custom: settings.get("customModel", ""),
   }[provider];
@@ -94,7 +94,7 @@ async function ollamaModels(ollamaUrl: string): Promise<string[]> {
 async function setUpOllama(): Promise<boolean> {
   const settings = config();
   const ollamaUrl = settings.get("ollamaUrl", "http://localhost:11434");
-  const current = settings.get("model", "gemma4:12b-mlx");
+  const current = settings.get("model", "gemma4:12b");
 
   const installed = await ollamaModels(ollamaUrl);
   let model: string | undefined;
@@ -106,7 +106,7 @@ async function setUpOllama(): Promise<boolean> {
     model = chosen?.name;
   } else {
     vscode.window.showWarningMessage(`Couldn't reach Ollama at ${ollamaUrl}. Start Ollama, or type the model name.`);
-    model = await askForModel("Ollama model", current, "e.g. gemma4:12b-mlx");
+    model = await askForModel("Ollama model", current, "e.g. gemma4:12b");
   }
   if (!model) {
     return false;
