@@ -147,8 +147,8 @@
         },
         "codeOnTheFly.serverScript": {
           "type": "string",
-          "default": "server.py",
-          "description": "Path to server.py, relative to the workspace (or absolute)."
+          "default": "",
+          "description": "Path to a server.py to run instead of the one bundled with the extension, relative to the workspace (or absolute). Leave empty to use the bundled one."
         }
       }
     },
@@ -163,7 +163,9 @@
     }
   },
   "scripts": {
-    "compile": "tsc -p ./",
+    "vscode:prepublish": "npm run compile",
+    "copy-python": "node scripts/copy-python.js",
+    "compile": "npm run copy-python && tsc -p ./",
     "watch": "tsc -watch -p ./"
   },
   "dependencies": {
