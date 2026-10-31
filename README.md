@@ -71,7 +71,7 @@ When you open a new terminal, run the activation command again before running th
 4. A new VS Code window opens to test the extension. This is the **Extension Development Host**.
 5. In that new window, open the Explorer sidebar and expand **Code On The Fly**. You can also open the Command Palette and run **Code On The Fly: Show Panel**.
 6. Run **Code On The Fly: Choose AI Provider** from the Command Palette and follow the setup below. To use checks without AI, turn off AI suggestions in the panel's gear menu instead.
-7. Change and save a `.py` or `.js` file inside `demo_project`.
+7. Change and save a `.py` or `.js` file inside `demo_workspace`.
 
 F5 builds the extension and starts the Python server automatically.
 
@@ -79,7 +79,7 @@ The extension looks for Python in the project's `.venv` folder. You can choose a
 
 ### Try a small example
 
-Create `demo_project/example.py`, add this code, and save it:
+Create `demo_workspace/example.py`, add this code, and save it:
 
 ```python
 print("Hello, world!")
@@ -165,7 +165,7 @@ From the project root, with the Python environment active:
 python watcher.py
 ```
 
-Change and save a Python or JavaScript file inside `demo_project`. The terminal shows the check result and asks the local model for an explanation when it finds an error.
+Change and save a Python or JavaScript file inside `demo_workspace`. The terminal shows the check result and asks the local model for an explanation when it finds an error.
 
 Press **Ctrl+C** to stop watching. This basic terminal mode uses local Ollama. It does not read the VS Code provider settings. Change `WATCH_DIR` in `watcher.py` to watch another folder, or `MODEL` in `ai_explainer.py` to use another installed Ollama model.
 
@@ -177,14 +177,14 @@ For OpenAI, set your API key and choose a model:
 
 ```bash
 export OPENAI_API_KEY="YOUR_OPENAI_API_KEY"
-python server.py --watch-dir demo_project --provider openai --model gpt-4o-mini
+python server.py --watch-dir demo_workspace --provider openai --model gpt-4o-mini
 ```
 
 For another compatible API, set that service's key, base URL, and model. Replace the example values:
 
 ```bash
 export OPENAI_API_KEY="YOUR_PROVIDER_API_KEY"
-python server.py --watch-dir demo_project --provider custom --base-url https://api.example.com/v1 --model YOUR_MODEL_NAME
+python server.py --watch-dir demo_workspace --provider custom --base-url https://api.example.com/v1 --model YOUR_MODEL_NAME
 ```
 
 In PowerShell, set the key with `$env:OPENAI_API_KEY = "YOUR_API_KEY"` before running the Python command. The backend reads `OPENAI_API_KEY` for both OpenAI and custom APIs; it does not load a `.env` file automatically.
@@ -192,7 +192,7 @@ In PowerShell, set the key with `$env:OPENAI_API_KEY = "YOUR_API_KEY"` before ru
 For a custom local server that needs no key, leave `OPENAI_API_KEY` unset. For checks without AI:
 
 ```bash
-python server.py --watch-dir demo_project --no-ai
+python server.py --watch-dir demo_workspace --no-ai
 ```
 
 The available options are `--watch-dir`, `--provider` (`ollama`, `openai`, or `custom`), `--model`, `--base-url`, and `--no-ai`. Set `--model` to match the provider; its default is still the Ollama model name.
@@ -211,7 +211,7 @@ For settings that apply only to this project, add them to `.vscode/settings.json
 
 | Setting | Default | What it changes |
 | --- | --- | --- |
-| `codeOnTheFly.watchFolder` | `demo_project` | Folder to check, relative to the open workspace. |
+| `codeOnTheFly.watchFolder` | `demo_workspace` | Folder to check, relative to the open workspace. |
 | `codeOnTheFly.enableAi` | `true` | Turns AI explanations on or off. |
 | `codeOnTheFly.provider` | `ollama` | AI provider: `ollama`, `openai`, or `custom`. |
 | `codeOnTheFly.model` | `gemma4:12b-mlx` | Model used by the Ollama provider. |
@@ -270,9 +270,8 @@ The last passing version is remembered while the watcher runs. Saved copies are 
 | `watcher.py` | Watches saved changes, runs checks, and saves copies. Also runs terminal mode. |
 | `ai_explainer.py` | Connects to the chosen AI provider and sends the code, changes, and error for an explanation. |
 | `server.py` | Reads provider options and sends check results and AI text to the VS Code extension. |
-| `api.py` | Small, separate Ollama connection test. Uses `gemma3:270m`, which differs from the main default model. |
 | `requirements.txt` | Python packages to install. |
-| `demo_project/` | Sample files for trying the watcher. Some contain errors for testing. |
+| `demo_workspace/` | Sample files for trying the watcher. Some contain errors for testing. |
 | `snapshots/` | Saved code copies and error messages. |
 | `vscode-extension/src/` | Extension startup, Python process, panel, and settings code. |
 | `vscode-extension/src/aiProvider.ts` | Provider setup, API key storage, and AI options passed to Python. |

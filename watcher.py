@@ -1,4 +1,4 @@
-"""Watch demo_project, check each saved file, and ask AI to explain new errors."""
+"""Watch demo_workspace, check each saved file, and ask AI to explain new errors."""
 
 import re
 import subprocess
@@ -13,7 +13,7 @@ from watchfiles import watch
 from ai_explainer import explain_error
 
 # Folder to watch, relative to this script so it works from any directory
-WATCH_DIR = (Path(__file__).parent / "demo_project").resolve()
+WATCH_DIR = (Path(__file__).parent / "demo_workspace").resolve()
 
 # Where before/after copies are saved; outside WATCH_DIR so it doesn't trigger the watcher
 SNAPSHOT_DIR = (Path(__file__).parent / "snapshots").resolve()

@@ -235,7 +235,7 @@ export function activate(context: vscode.ExtensionContext): void {
     const settings = config();
     const script = path.resolve(root, settings.get("serverScript", "server.py"));
     const ai = await serverAiOptions(context.secrets);
-    const args = ["-u", script, "--watch-dir", path.resolve(root, settings.get("watchFolder", "demo_project")), ...ai.args];
+    const args = ["-u", script, "--watch-dir", path.resolve(root, settings.get("watchFolder", "demo_workspace")), ...ai.args];
     if (!settings.get("enableAi", true)) {
       args.push("--no-ai");
     }

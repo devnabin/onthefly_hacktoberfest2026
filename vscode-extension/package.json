@@ -84,7 +84,7 @@
         },
         "codeOnTheFly.watchFolder": {
           "type": "string",
-          "default": "demo_project",
+          "default": "demo_workspace",
           "description": "Folder (relative to the workspace) whose files are checked on save."
         },
         "codeOnTheFly.enableAi": {
