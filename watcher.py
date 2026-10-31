@@ -1,8 +1,10 @@
 """Watch demo_workspace, check each saved file, and ask AI to explain new errors."""
 
+import os
 import re
 import subprocess
 import sys
+import tempfile
 import threading
 from collections.abc import Callable
 from pathlib import Path
@@ -24,6 +26,10 @@ COMPILERS = {
     ".js": ["node", "--check"],
     ".py": [sys.executable, "-m", "ruff", "check", "--no-cache"],
 }
+
+# Folders that hold libraries or generated files, not the user's code; never read or checked.
+# Hidden folders (.git, .venv, .next, ...) are skipped too.
+SKIP_DIRS = frozenset({"node_modules", "venv", "env", "__pycache__", "site-packages", "dist", "build"})
 
 # Ruff: a "CODE message" line followed by " --> path:line:column"
 RUFF_LOCATION = re.compile(r"^(\S.*)\n\s*--> .*?:(\d+):\d+", re.MULTILINE)
@@ -72,6 +78,34 @@ def find_error_lines(output: str) -> list[tuple[int, str]]:
     return []
 
 
+# Check text that isn't saved anywhere (e.g. an earlier version), using a temporary copy
+def compile_text(name: Path, text: str) -> tuple[bool, str] | None:
+    with tempfile.TemporaryDirectory() as folder:
+        path = Path(folder) / name.name
+        path.write_text(text)
+        return compile_file(path)
+
+
+# True for a file we can check that isn't inside a skipped folder
+def is_watched(path: Path, directory: Path) -> bool:
+    if path.suffix not in COMPILERS:
+        return False
+    try:
+        folders = path.relative_to(directory).parts[:-1]
+    except ValueError:
+        return False
+    return not any(folder in SKIP_DIRS or folder.startswith(".") for folder in folders)
+
+
+# Every watched file in the folder, without walking into skipped folders
+def find_watched_files(directory: Path) -> list[Path]:
+    found = []
+    for root, folders, files in os.walk(directory):
+        folders[:] = [f for f in folders if f not in SKIP_DIRS and not f.startswith(".")]
+        found += [Path(root) / f for f in files if Path(f).suffix in COMPILERS]
+    return found
+
+
 # Read a file's contents, or None if it no longer exists
 def read_file(path: Path) -> str | None:
     try:
@@ -98,20 +132,19 @@ def watch_and_check(
     stop_event: threading.Event | None = None,
     directory: Path = WATCH_DIR,
 ) -> None:
-    # Remember each file's current contents so we only report real changes
-    last_contents = {
-        path: read_file(path) for path in directory.rglob("*") if path.is_file()
-    }
+    # Remember each file's current contents so we only report real changes.
+    # Nothing is checked yet, so opening a big project starts instantly.
+    last_contents = {path: read_file(path) for path in find_watched_files(directory)}
+
+    # Files whose startup version hasn't been checked; it's checked on the first failed save
+    unchecked = set(last_contents)
 
     # Remember the last version of each file that compiled cleanly (the "before")
     last_working = {}
-    for path, contents in last_contents.items():
-        result = compile_file(path)
-        if result and result[0]:
-            last_working[path] = contents
 
-    # watch() blocks and yields a set of (change, path) each time files change
-    for changes in watch(directory, stop_event=stop_event):
+    # watch() blocks and yields a set of (change, path) each time watched files change
+    watch_filter = lambda _change, path: is_watched(Path(path), directory)
+    for changes in watch(directory, stop_event=stop_event, watch_filter=watch_filter):
         for path in sorted({Path(p) for _, p in changes}):
             # Folders also emit events; we only care about files
             if path.is_dir():
@@ -123,6 +156,8 @@ def watch_and_check(
                 continue
             previous = last_contents.get(path)
             last_contents[path] = current
+            first_change = path in unchecked
+            unchecked.discard(path)
 
             name = path.relative_to(directory)
             if current is None:
@@ -142,6 +177,12 @@ def watch_and_check(
                 last_working[path] = current
                 on_result(name, True, output, current, current)
                 continue
+
+            # First failed save since startup: was the version before it working?
+            if first_change and previous is not None:
+                earlier = compile_text(path, previous)
+                if earlier and earlier[0]:
+                    last_working[path] = previous
 
             # Failed compile: compare against the last working version
             # (or the previous save if it never worked) and keep copies

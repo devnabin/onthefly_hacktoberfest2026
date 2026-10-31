@@ -211,7 +211,7 @@ For settings that apply only to this project, add them to `.vscode/settings.json
 
 | Setting | Default | What it changes |
 | --- | --- | --- |
-| `codeOnTheFly.watchFolder` | `demo_workspace` | Folder to check, relative to the open workspace. |
+| `codeOnTheFly.watchFolder` | `.` | Folder to check, relative to the open workspace. `.` means the whole workspace. Library folders such as `node_modules` and `.venv` are skipped. |
 | `codeOnTheFly.enableAi` | `true` | Turns AI explanations on or off. |
 | `codeOnTheFly.provider` | `ollama` | AI provider: `ollama`, `openai`, or `custom`. |
 | `codeOnTheFly.model` | `gemma4:12b-mlx` | Model used by the Ollama provider. |

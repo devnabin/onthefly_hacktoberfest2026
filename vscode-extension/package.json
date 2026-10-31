@@ -84,8 +84,8 @@
         },
         "codeOnTheFly.watchFolder": {
           "type": "string",
-          "default": "demo_workspace",
-          "description": "Folder (relative to the workspace) whose files are checked on save."
+          "default": ".",
+          "description": "Folder (relative to the workspace) whose files are checked on save. \".\" means the whole workspace; library folders like node_modules and .venv are always skipped."
         },
         "codeOnTheFly.enableAi": {
           "type": "boolean",
