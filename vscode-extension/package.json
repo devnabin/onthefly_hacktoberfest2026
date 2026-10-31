@@ -143,7 +143,7 @@
         "codeOnTheFly.pythonPath": {
           "type": "string",
           "default": "",
-          "description": "Python used to run the Code On The Fly server. Leave empty to use the workspace .venv, then python3 on PATH."
+          "description": "Python used to run the Code On The Fly server; it needs the packages in requirements.txt. Leave empty to let the extension set up its own Python environment."
         },
         "codeOnTheFly.serverScript": {
           "type": "string",

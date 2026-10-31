@@ -1,11 +1,11 @@
 // Entry point: runs server.py in the background and shows its results inside VS Code.
 
-import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import { ErrorEntry, PanelViewProvider, PanelState } from "./panelView";
 import { PythonServer, ServerEvent } from "./server";
 import { askForApiKey, chooseProvider, currentProvider, serverAiOptions } from "./aiProvider";
+import { ensurePython, PythonSetupError } from "./pythonEnv";
 import { showSettingsMenu } from "./settingsMenu";
 
 // Shown when every check passes (and the user clicks the ghost for a new one)
@@ -193,21 +193,6 @@ export function activate(context: vscode.ExtensionContext): void {
     (line) => output.appendLine(line),
   );
 
-  // Pick the Python to use: the setting, then the workspace .venv, then python3 on PATH
-  function resolvePython(root: string): string {
-    const configured = config().get<string>("pythonPath", "");
-    if (configured) {
-      return configured;
-    }
-    const venvPython = process.platform === "win32"
-      ? path.join(root, ".venv", "Scripts", "python.exe")
-      : path.join(root, ".venv", "bin", "python");
-    if (fs.existsSync(venvPython)) {
-      return venvPython;
-    }
-    return process.platform === "win32" ? "python" : "python3";
-  }
-
   // Restart shortly after settings change; a guided setup saves several settings at once,
   // and this makes them cause a single restart
   let restartTimer: NodeJS.Timeout | undefined;
@@ -216,8 +201,12 @@ export function activate(context: vscode.ExtensionContext): void {
     restartTimer = setTimeout(() => void startServer(), 300);
   }
 
+  // Counts starts, so a slow start (e.g. first-run setup) doesn't win over a newer one
+  let startCount = 0;
+
   // (Re)start server.py with the current settings and a clean slate
   async function startServer(): Promise<void> {
+    const thisStart = ++startCount;
     errors.clear();
     diagnostics.clear();
     checkedAny = false;
@@ -249,10 +238,39 @@ export function activate(context: vscode.ExtensionContext): void {
       args.push("--roast-theme", roastTheme);
     }
 
+    // Python from the pythonPath setting, else the extension's own environment (set up on first run)
+    let python: string;
+    try {
+      python = await ensurePython(context, settings.get("pythonPath", ""), (line) => output.appendLine(line));
+    } catch (error) {
+      if (thisStart === startCount) {
+        showSetupError(error);
+      }
+      return;
+    }
+    if (thisStart !== startCount) {
+      return;
+    }
+
     // Mark as running right away; if Python fails, onStopped flips it back
     serverRunning = true;
-    server.start(resolvePython(root), args, root, ai.env);
+    server.start(python, args, root, ai.env);
     render();
+  }
+
+  // Python setup failed: explain in the panel and offer the Python download page
+  function showSetupError(error: unknown): void {
+    const message = error instanceof PythonSetupError ? error.message : `Python setup failed: ${(error as Error).message}`;
+    output.appendLine(message);
+    serverMessage = message;
+    render();
+    vscode.window.showErrorMessage(message, "Download Python", "Show Log").then((choice) => {
+      if (choice === "Download Python") {
+        vscode.env.openExternal(vscode.Uri.parse("https://www.python.org/downloads/"));
+      } else if (choice === "Show Log") {
+        output.show();
+      }
+    });
   }
 
   context.subscriptions.push(
