@@ -1,4 +1,5 @@
-./snapshots
-./demo_project
-vscode-extension/node_modules
-vscode-extension/out
+snapshots/
+__pycache__/
+.venv/
+vscode-extension/node_modules/
+vscode-extension/out/
